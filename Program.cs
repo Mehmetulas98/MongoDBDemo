@@ -10,44 +10,37 @@ namespace MongoDBDemo
     {
         static void Main(string[] args)
         {
-            MongoCRUD db = new MongoCRUD("Library");
+            // Create DB
+            MongoCRUD db = new MongoCRUD("SportApp");
 
             // Inserting new record
-            //db.InsertRecord("Books", new BookModel { BookName = "LOTR 2 ", PageNumber = 20, Company = "Yayıncılık"  } );
+            db.InsertRecord("Hareketler", new HareketModel { HareketAdı = "leg Press",HareketYakılanKalori=100 } );
 
             
 
-            // Returning model from db
-            var result = db.Load<BookModel>("Books");
+            //// Returning model from db
+            //var result = db.Load<BookModel>("Books");
 
 
 
 
-            // Returning model with Guid
-            //var IdResult = db.LoadWithyQuery<BookModel>("Books", new Guid("37f40443-185f-43b0-8d84-8ea41f7f600d"));
+            //// Returning model with Guid
+            ////var IdResult = db.LoadWithyQuery<BookModel>("Books", new Guid("37f40443-185f-43b0-8d84-8ea41f7f600d"));
 
 
-            // Update
-            var record = db.LoadWithyQuery<BookModel>("Books", new Guid("37f40443-185f-43b0-8d84-8ea41f7f600d"));
-            record.BookName = "deneme 123 ";
-            db.UpdateRecord<BookModel>("Books", record.Id, record);
+            //// Update
+            //var record = db.LoadWithyQuery<BookModel>("Books", new Guid("37f40443-185f-43b0-8d84-8ea41f7f600d"));
+            //record.BookName = "deneme 123 ";
+            //db.UpdateRecord<BookModel>("Books", record.Id, record);
 
 
-            // Delete
+            //// Delete
 
-            db.DeleteRecord<BookModel>("Books", new Guid("37f40443-185f-43b0-8d84-8ea41f7f600d"));
+            //db.DeleteRecord<BookModel>("Books", new Guid("37f40443-185f-43b0-8d84-8ea41f7f600d"));
         }
     }
 
-    public class BookModel
-    {
-        [BsonId]
-        public Guid Id { get; set; }
-        public string BookName{ get; set; }
-        public int PageNumber { get; set; }
-
-        public string Company { get; set; }
-    }
+     
      public class MongoCRUD
     {
          private IMongoDatabase db;
@@ -57,40 +50,33 @@ namespace MongoDBDemo
             var client = new MongoClient();
             db = client.GetDatabase(database);
         }
-
+        // Veri ekleme
         public void InsertRecord<T>(string table, T record)
         {
             var col = db.GetCollection<T>(table);
             col.InsertOne(record);
         }
+        // Veri çekme (Bütün tabloyu çeke)
         public List<T> Load<T>(string tableName)
         {
             var col = db.GetCollection<T>(tableName);
-
             return col.Find(new BsonDocument()).ToList();
-
         }
-
+        // ID bilgisine göre veri çekme
         public T LoadWithyQuery<T>(string tableName, Guid guid)
         {
             var col = db.GetCollection<T>(tableName);
             var filter = Builders<T>.Filter.Eq("Id", guid);
-
             return col.Find(filter).First();
-
         }
-
+        // Girilen ID bilgisine göre güncelleme
         public void UpdateRecord<T>(string tableName, Guid guid , T record)
         {
             var col = db.GetCollection<T>(tableName);
-            var result = col.ReplaceOne(new BsonDocument("_id", guid),
-                record,
-                new UpdateOptions { IsUpsert = true });
-
+            var result = col.ReplaceOne(new BsonDocument("_id", guid),record,new UpdateOptions { IsUpsert = true });
         }
         public void DeleteRecord<T>(string tableName , Guid guid)
         {
-
             var col = db.GetCollection<T>(tableName);
             var filter = Builders<T>.Filter.Eq("Id", guid);
             col.DeleteOne(filter);
